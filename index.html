@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的冰箱</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style id="css">
+/* 版面:單欄,上方摘要 → 新增表單 → 依到期日排序的清單;像貼在冰箱門上的便條 */
+:root{
+  --bg:#eff1eb; --surface:#fcfcf6; --ink:#594842; --muted:#7a6860; --line:#ccd4c5;
+  --accent:#685049; --accent-ink:#fcfcf6; --info-bg:#dee9dc;
+  --bad:#9c4237; --bad-bg:#efdcd5; --warn:#80601a; --warn-bg:#efe6cb; --ok:#4a674c; --ok-bg:#dee9dc;
+  --display:"Times New Roman",Times,"DFKai-SB","BiauKai","標楷體","BiauKaiTC","Kaiti TC","LXGW WenKai TC",serif;
+  --body:"Times New Roman",Times,"DFKai-SB","BiauKai","標楷體","BiauKaiTC","Kaiti TC","LXGW WenKai TC",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#2e2623; --surface:#3b312d; --ink:#eef1e9; --muted:#b7c0af; --line:#56483f;
+    --accent:#b7c0af; --accent-ink:#2e2623; --info-bg:#434d3f;
+    --bad:#f0a99c; --bad-bg:#5a342d; --warn:#e8cf8f; --warn-bg:#4f4222; --ok:#c6d8c2; --ok-bg:#3c4a3a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#2e2623; --surface:#3b312d; --ink:#eef1e9; --muted:#b7c0af; --line:#56483f;
+  --accent:#b7c0af; --accent-ink:#2e2623; --info-bg:#434d3f;
+  --bad:#f0a99c; --bad-bg:#5a342d; --warn:#e8cf8f; --warn-bg:#4f4222; --ok:#c6d8c2; --ok-bg:#3c4a3a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+#root{max-width:640px;margin:0 auto;padding:20px 16px 96px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-size:32px;line-height:1.1;margin:0;text-wrap:balance}
+.today{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.stat{background:var(--ok-bg);border-color:transparent}
+.stat b{color:var(--ok)}
+.stat.bad{background:var(--bad-bg)} .stat.warn{background:var(--warn-bg)}
+.stat.bad b{color:var(--bad)} .stat.warn b{color:var(--warn)}
+.note{background:var(--info-bg);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+form h2{font-size:16px;margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:0}
+.field.wide{flex:1 1 100%}
+label{font-size:13px;color:var(--muted)}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%;min-height:44px}
+button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px;min-height:40px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;min-height:46px;flex:1}
+button.small{font-size:13px;min-height:34px;padding:4px 10px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border-radius:999px;font-size:14px;min-height:36px;padding:4px 14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+li{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--ok);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+li.bad{border-left-color:var(--bad)} li.warn{border-left-color:var(--warn)}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.name{font-weight:700;font-size:17px;overflow-wrap:anywhere}
+.pill{flex:none;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;background:var(--ok-bg);color:var(--ok);white-space:nowrap}
+li.bad .pill{background:var(--bad-bg);color:var(--bad)} li.warn .pill{background:var(--warn-bg);color:var(--warn)}
+.meta{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.acts{display:flex;gap:6px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;border:1px dashed var(--line);border-radius:12px}
+.status{font-size:13px;color:var(--muted);text-align:center;min-height:20px}
+.toast{position:fixed;left:16px;right:16px;bottom:16px;max-width:608px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.toast button{background:transparent;color:inherit;border-color:currentColor}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="application/json" id="state">{"updatedAt":1794897409672,"items":[{"id":"s2","name":"鮮奶","qty":"1 瓶","loc":"冷藏","date":"2026-11-19","sample":true},{"id":"s3","name":"青江菜","qty":"1 把","loc":"蔬果室","date":"2026-11-20","sample":true},{"id":"s4","name":"雞蛋","qty":"10 顆","loc":"冷藏","date":"2026-12-01","sample":true},{"id":"s5","name":"冷凍水餃","qty":"1 包","loc":"冷凍","date":"2027-02-15","sample":true}]}</script>
+<script id="app">
+(function(){
+  var LOCS=['冷藏','冷凍','蔬果室'];
+  var KEY='fridge-state-v1';
+  var root=document.getElementById('root');
+  var state=JSON.parse(document.getElementById('state').textContent);
+  try{
+    var loc=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(loc&&loc.items&&loc.updatedAt>state.updatedAt) state=loc;
+  }catch(e){}
+  var filter='全部', editing=null, status='', removed=null, timer=null, readOnly=false;
+  var draft={name:'',qty:'',loc:'冷藏',date:''};
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function today(){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+  function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+  function left(s){return Math.round((parse(s)-today())/86400000)}
+  function info(s){
+    var n=left(s);
+    if(n<0) return {cls:'bad',text:'過期 '+(-n)+' 天'};
+    if(n===0) return {cls:'warn',text:'今天到期'};
+    if(n<=3) return {cls:'warn',text:'剩 '+n+' 天'};
+    return {cls:'',text:'剩 '+n+' 天'};
+  }
+
+  function render(){
+    var items=state.items.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
+    var bad=0,warn=0;
+    items.forEach(function(i){var c=info(i.date).cls;if(c==='bad')bad++;else if(c==='warn')warn++;});
+    var shown=items.filter(function(i){return filter==='全部'||i.loc===filter});
+    var hasSample=items.some(function(i){return i.sample});
+    var t=today();
+    var h='';
+    h+='<header><h1>我的冰箱</h1><div class="today">今天 '+t.getFullYear()+'/'+(t.getMonth()+1)+'/'+t.getDate()+'</div></header>';
+    h+='<div class="stats"><div class="stat bad"><b>'+bad+'</b><span>已過期</span></div><div class="stat warn"><b>'+warn+'</b><span>3 天內到期</span></div><div class="stat"><b>'+items.length+'</b><span>全部品項</span></div></div>';
+    if(hasSample) h+='<div class="note"><span>下面是範例資料。新增第一樣食物後會自動清除。</span><button class="small" data-act="clear" type="button">現在清除</button></div>';
+    if(!readOnly){
+      h+='<form id="f" autocomplete="off"><h2>'+(editing?'修改食物':'新增食物')+'</h2>';
+      h+='<div class="row"><div class="field wide"><label for="f-name">名稱</label><input id="f-name" required maxlength="40" placeholder="例如:鮮奶" value="'+esc(draft.name)+'"></div></div>';
+      h+='<div class="row"><div class="field"><label for="f-qty">數量</label><input id="f-qty" maxlength="20" placeholder="1 瓶" value="'+esc(draft.qty)+'"></div>';
+      h+='<div class="field"><label for="f-loc">位置</label><select id="f-loc">'+LOCS.map(function(l){return '<option'+(l===draft.loc?' selected':'')+'>'+l+'</option>'}).join('')+'</select></div></div>';
+      h+='<div class="row"><div class="field wide"><label for="f-date">保存期限</label><input id="f-date" type="date" required value="'+esc(draft.date)+'"></div></div>';
+      h+='<div class="quick">'+[[3,'3 天後'],[7,'1 週後'],[14,'2 週後'],[30,'1 個月後']].map(function(q){return '<button class="small" type="button" data-add="'+q[0]+'">'+q[1]+'</button>'}).join('')+'</div>';
+      h+='<div class="row"><button class="primary" type="submit">'+(editing?'儲存修改':'放進冰箱')+'</button>'+(editing?'<button type="button" data-act="cancel">取消</button>':'')+'</div></form>';
+    }
+    h+='<div class="chips" role="group" aria-label="依位置篩選">'+['全部'].concat(LOCS).map(function(l){return '<button type="button" class="chip" data-filter="'+l+'" aria-pressed="'+(l===filter)+'">'+l+'</button>'}).join('')+'</div>';
+    if(!shown.length) h+='<div class="empty">'+(items.length?'這個位置目前沒有東西。':'冰箱是空的。在上面新增第一樣食物。')+'</div>';
+    else{
+      h+='<ul>'+shown.map(function(i){
+        var s=info(i.date);
+        return '<li class="'+s.cls+'"><div class="top"><span class="name">'+esc(i.name)+(i.sample?'(範例)':'')+'</span><span class="pill">'+s.text+'</span></div>'+
+          '<div class="meta"><span>'+esc(i.loc)+(i.qty?' · '+esc(i.qty):'')+' · '+esc(i.date.replace(/-/g,'/'))+' 到期</span>'+
+          (readOnly?'':'<span class="acts"><button class="small" type="button" data-edit="'+esc(i.id)+'">修改</button><button class="small" type="button" data-del="'+esc(i.id)+'">吃完了</button></span>')+'</div></li>';
+      }).join('')+'</ul>';
+    }
+    h+='<div class="status" role="status">'+esc(status)+'</div>';
+    if(removed) h+='<div class="toast"><span>已移除「'+esc(removed.name)+'」</span><button class="small" type="button" data-act="undo">復原</button></div>';
+    root.innerHTML=h;
+  }
+
+  function readDraft(){
+    var n=document.getElementById('f-name'); if(!n) return;
+    draft={name:n.value,qty:document.getElementById('f-qty').value,loc:document.getElementById('f-loc').value,date:document.getElementById('f-date').value};
+  }
+
+  function buildDoc(){
+    var json=JSON.stringify(state).replace(/</g,'\\u003c');
+    return '<!DOCTYPE html>\n<html lang="zh-Hant">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>我的冰箱</title>\n'+
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">\n'+
+      '<style id="css">'+document.getElementById('css').textContent+'</style>\n</head>\n<body>\n<div id="root"></div>\n'+
+      '<script type="application/json" id="state">'+json+'<\/script>\n'+
+      '<script id="app">'+document.getElementById('app').textContent+'<\/script>\n</body>\n</html>\n';
+  }
+
+  function changed(delay){
+    state.updatedAt=Date.now();
+    try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+    status='儲存中…';
+    clearTimeout(timer);
+    timer=setTimeout(publish,delay||900);
+    render();
+  }
+  async function publish(){
+    var a=null;
+    try{ if(window.claude&&window.claude.use) a=await window.claude.use('artifact'); }catch(e){}
+    if(!a){status='已存在這台裝置上';removed=null;render();return;}
+    try{ await a.publish(buildDoc()); status='已儲存'; }
+    catch(e){
+      var m=String((e&&(e.code||e.message))||'');
+      if(/not_granted|not_writer/.test(m)){readOnly=true;status='你只能檢視,無法修改這個頁面';}
+      else if(/conflict/.test(m)){status='';}
+      else status='雲端儲存失敗,已先存在這台裝置上';
+    }
+    removed=null; render();
+  }
+
+  root.addEventListener('submit',function(e){
+    e.preventDefault(); readDraft();
+    var name=draft.name.trim(); if(!name||!draft.date) return;
+    if(editing){
+      var it=state.items.find(function(i){return i.id===editing});
+      if(it){it.name=name;it.qty=draft.qty.trim();it.loc=draft.loc;it.date=draft.date;delete it.sample;}
+      editing=null;
+    }else{
+      state.items=state.items.filter(function(i){return !i.sample});
+      state.items.push({id:'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name,qty:draft.qty.trim(),loc:draft.loc,date:draft.date});
+    }
+    draft={name:'',qty:'',loc:draft.loc,date:''};
+    changed();
+  });
+  root.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    var d=b.dataset;
+    if(d.add){readDraft();var t=today();t.setDate(t.getDate()+ +d.add);draft.date=iso(t);render();}
+    else if(d.filter){readDraft();filter=d.filter;render();}
+    else if(d.edit){
+      var it=state.items.find(function(i){return i.id===d.edit}); if(!it) return;
+      editing=it.id; draft={name:it.name,qty:it.qty||'',loc:it.loc,date:it.date}; render();
+      var f=document.getElementById('f'); if(f) f.scrollIntoView({block:'start'});
+    }
+    else if(d.del){
+      readDraft();
+      var x=state.items.find(function(i){return i.id===d.del}); if(!x) return;
+      state.items=state.items.filter(function(i){return i.id!==d.del});
+      if(editing===d.del) editing=null;
+      removed=x; changed(4000);
+    }
+    else if(d.act==='undo'&&removed){readDraft();state.items.push(removed);removed=null;changed();}
+    else if(d.act==='clear'){readDraft();state.items=state.items.filter(function(i){return !i.sample});changed();}
+    else if(d.act==='cancel'){editing=null;draft={name:'',qty:'',loc:'冷藏',date:''};render();}
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
